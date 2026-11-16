@@ -1,4 +1,5 @@
 import AppHeader from './components/AppHeader'
+import BackendStatus from './components/BackendStatus'
 import FeatureCard from './components/FeatureCard'
 import type { Feature } from './components/FeatureCard'
 import StatusBadge from './components/StatusBadge'
@@ -143,9 +144,8 @@ export default function App() {
             <h2 id="status-title">A foundation in progress.</h2>
           </div>
           <div className="status-list">
-            <StatusRow number="01" title="Frontend foundation" detail="Interface structure is being established" status="IN PROGRESS" tone="in-progress" />
-            <StatusRow number="02" title="Backend foundation" detail="FastAPI health endpoint implemented separately" status="IMPLEMENTED" tone="complete" />
-            <StatusRow number="03" title="Frontend / backend integration" detail="Connection between application layers" status="PENDING" tone="pending" />
+            <StatusRow number="01" title="Frontend" detail="Dashboard application is running" status="RUNNING" tone="complete" />
+            <BackendStatus />
           </div>
         </section>
       </main>

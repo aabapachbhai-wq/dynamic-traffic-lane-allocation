@@ -11,7 +11,7 @@ A planned, browser-accessible full-stack website for simulating intelligent traf
 - **Testing:** Pytest, Vitest, Playwright
 - **Development and deployment:** Git, GitHub, Docker, GitHub Actions
 
-The application is at the planning stage; the traffic simulation and frontend are not implemented. See [PROJECT_SPECIFICATION.md](PROJECT_SPECIFICATION.md) and [ARCHITECTURE_PROPOSAL.md](ARCHITECTURE_PROPOSAL.md) for requirements and the architecture proposal.
+The frontend and backend foundations are implemented. The traffic simulation is not implemented. See [PROJECT_SPECIFICATION.md](PROJECT_SPECIFICATION.md) and [ARCHITECTURE_PROPOSAL.md](ARCHITECTURE_PROPOSAL.md) for requirements and the architecture proposal.
 
 ## Initial backend foundation
 
@@ -63,7 +63,7 @@ Interactive API documentation: <http://127.0.0.1:8000/docs>
 
 ## Initial frontend foundation
 
-The initial frontend foundation lives in `frontend/` and uses React, TypeScript, Vite, and Tailwind CSS. It provides a responsive project dashboard with planned capability cards, a simulation workspace placeholder, and development status. The frontend runs independently and does not connect to the backend. No traffic simulation is implemented.
+The initial frontend foundation lives in `frontend/` and uses React, TypeScript, Vite, and Tailwind CSS. It provides a responsive project dashboard with planned capability cards, a simulation workspace placeholder, and development status. No traffic simulation is implemented.
 
 ### Frontend structure
 
@@ -114,3 +114,65 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
+
+## Frontend and backend integration
+
+The frontend and backend remain separate applications. The dashboard checks the backend's existing health endpoint using the browser Fetch API. It reports Connected only when the endpoint returns HTTP success and the JSON body contains `{"status":"ok"}`. A failed request, non-success response, or unexpected body displays Disconnected. Use Retry to issue a fresh health check. The frontend does not yet call any simulation APIs.
+
+### Configure the frontend
+
+From `frontend/`, create a local environment file from the example and adjust the URL if the backend uses a different host or port:
+
+```bash
+cp .env.example .env.local
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+The example configures `VITE_API_BASE_URL=http://localhost:8000`. Vite environment values are public in the browser bundle; do not put secrets in them. Restart the Vite server after changing `.env.local`.
+
+### Run both applications
+
+Start the backend in one terminal:
+
+```bash
+cd backend
+python -m uvicorn traffic_app.main:app --reload --app-dir src
+```
+
+Start the frontend in a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend checks `GET http://localhost:8000/api/v1/health`. A healthy backend responds with:
+
+```json
+{"status":"ok"}
+```
+
+The default backend CORS allowlist includes Vite's `http://localhost:5173` and `http://127.0.0.1:5173` origins. To use another frontend origin, set `TRAFFIC_APP_CORS_ORIGINS` on the backend to a comma-separated list of exact trusted origins. For a production frontend, configure its deployed origin explicitly; do not use a wildcard.
+
+### Integration checks
+
+Run frontend checks from `frontend/`:
+
+```bash
+npm run test
+npm run typecheck
+npm run build
+```
+
+Run backend tests from `backend/`:
+
+```bash
+python -m pytest
+```
+
+If the dashboard shows Disconnected, confirm the backend is running on the configured base URL and that `/api/v1/health` returns `{"status":"ok"}`. If the endpoint works directly but the browser reports a CORS error, confirm the page origin exactly matches one of the backend's allowed origins. Changing the frontend URL requires restarting Vite; changing `TRAFFIC_APP_CORS_ORIGINS` requires restarting Uvicorn.

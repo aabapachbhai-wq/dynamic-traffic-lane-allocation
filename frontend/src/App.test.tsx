@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 describe('application foundation', () => {
@@ -40,11 +40,16 @@ describe('application foundation', () => {
     expect(screen.getByText('NOT YET IMPLEMENTED')).toBeInTheDocument()
   })
 
-  it('shows frontend and integration as pending stages while backend is implemented', () => {
+  it('shows the frontend running and the live integration status', async () => {
     render(<App />)
 
-    expect(screen.getByText('IN PROGRESS')).toBeInTheDocument()
-    expect(screen.getByText('IMPLEMENTED')).toBeInTheDocument()
-    expect(screen.getByText('PENDING')).toBeInTheDocument()
+    expect(screen.getByText('Frontend')).toBeInTheDocument()
+    expect(screen.getByText('RUNNING')).toBeInTheDocument()
+    expect(await screen.findByText('Backend: Connected')).toBeInTheDocument()
+    expect(screen.getByText('Integration: Connected')).toBeInTheDocument()
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/health',
+      expect.objectContaining({ method: 'GET', signal: expect.any(AbortSignal) }),
+    )
   })
 })
